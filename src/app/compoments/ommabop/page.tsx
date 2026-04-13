@@ -19,9 +19,16 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-
+  const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -54,18 +61,17 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
     1,
     Math.ceil(filteredMovies.length / itemsPerPage)
   );
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentMovies = filteredMovies.slice(indexOfFirstItem, indexOfLastItem);
+
+  const currentMovies = filteredMovies.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const closeModal = () => setSelectedMovie(null);
 
   const handleWatchNow = (url?: string) => {
-    if (url) {
-      window.open(url, "_blank");
-    } else {
-      alert("Ushbu kino uchun video havola mavjud emas.");
-    }
+    if (url) window.open(url, "_blank");
+    else alert("Ushbu kino uchun video havola mavjud emas.");
   };
 
   const handleShare = async (movie: Movie) => {
@@ -95,11 +101,14 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
           color: "#A855F7",
           backgroundColor: "#070710",
           height: "100vh",
-          fontSize: "20px",
-          fontWeight: "600",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        <div className="animate-pulse"> Malumotlar Yuklanmoqda...</div>
+        <div style={{ fontSize: "20px", fontWeight: "600" }}>
+          Ma'lumotlar yuklanmoqda...
+        </div>
       </div>
     );
 
@@ -109,15 +118,51 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
         width: "100%",
         backgroundColor: "#070710",
         minHeight: "100vh",
-        padding: "60px 0",
+        padding: isMobile ? "30px 0" : "60px 0",
         fontFamily: "'Inter', sans-serif",
       }}
     >
-      <div style={{ width: "90%", maxWidth: "1250px", margin: "0 auto" }}>
-        {/* Sarlavha qismi */}
+      <style jsx>{`
+        .movie-card {
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+        @media (min-width: 769px) {
+          .movie-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(168, 85, 247, 0.25);
+            border-color: rgba(168, 85, 247, 0.5) !important;
+            z-index: 10;
+          }
+          .movie-card:hover img {
+            transform: scale(1.1);
+          }
+        }
+        .pagination-btn:active {
+          transform: scale(0.9);
+        }
+        .modal-overlay {
+          animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+      `}</style>
+
+      <div
+        style={{
+          width: isMobile ? "92%" : "90%",
+          maxWidth: "1250px",
+          margin: "0 auto",
+        }}
+      >
         <div
           style={{
-            marginBottom: "50px",
+            marginBottom: isMobile ? "30px" : "50px",
             borderLeft: "6px solid #A855F7",
             paddingLeft: "20px",
           }}
@@ -125,17 +170,22 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
           <h2
             style={{
               color: "white",
-              fontSize: "32px",
+              fontSize: isMobile ? "24px" : "32px",
               fontWeight: "800",
-              letterSpacing: "-0.5px",
               margin: 0,
             }}
           >
             Ommabop <span style={{ color: "#A855F7" }}>Kinolar</span>
           </h2>
-          <p style={{ color: "#64748B", marginTop: "5px" }}>
+          <p
+            style={{
+              color: "#64748B",
+              marginTop: "5px",
+              fontSize: isMobile ? "13px" : "16px",
+            }}
+          >
             {searchTerm
-              ? `"${searchTerm}" bo'yicha qidiruv natijalari`
+              ? `"${searchTerm}" bo'yicha natijalar`
               : "Eng so'nggi va sara filmlar to'plami"}
           </p>
         </div>
@@ -144,8 +194,10 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "30px",
+              gridTemplateColumns: isMobile
+                ? "repeat(2, 1fr)"
+                : "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: isMobile ? "15px" : "30px",
             }}
           >
             {currentMovies.map((movie) => (
@@ -155,25 +207,11 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
                 className="movie-card"
                 style={{
                   backgroundColor: "#111122",
-                  borderRadius: "24px",
+                  borderRadius: isMobile ? "16px" : "24px",
                   overflow: "hidden",
                   border: "1px solid rgba(255,255,255,0.05)",
                   cursor: "pointer",
-                  transition:
-                    "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                   position: "relative",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform =
-                    "translateY(-10px) scale(1.02)";
-                  e.currentTarget.style.boxShadow =
-                    "0 20px 40px rgba(168, 85, 247, 0.15)";
-                  e.currentTarget.style.borderColor = "rgba(168, 85, 247, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0) scale(1)";
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
                 }}
               >
                 <div
@@ -191,38 +229,37 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
+                      transition: "transform 0.6s ease",
                     }}
                   />
                   <div
                     style={{
                       position: "absolute",
-                      top: "15px",
-                      right: "15px",
-                      background: "rgba(0, 0, 0, 0.6)",
-                      backdropFilter: "blur(8px)",
-                      padding: "6px 12px",
-                      borderRadius: "12px",
+                      top: isMobile ? "8px" : "15px",
+                      right: isMobile ? "8px" : "15px",
+                      background: "rgba(0, 0, 0, 0.7)",
+                      backdropFilter: "blur(10px)",
+                      padding: isMobile ? "4px 8px" : "6px 12px",
+                      borderRadius: isMobile ? "8px" : "12px",
                       color: "white",
-                      fontSize: "13px",
+                      fontSize: isMobile ? "11px" : "13px",
                       fontWeight: "700",
-                      border: "1px solid rgba(255,255,255,0.1)",
                       display: "flex",
-                      alignItems: "center",
                       gap: "5px",
+                      border: "1px solid rgba(255,255,255,0.1)",
                     }}
                   >
                     <span style={{ color: "#FACC15" }}>★</span>{" "}
                     {movie.rating || "0.0"}
                   </div>
                 </div>
-
-                <div style={{ padding: "20px" }}>
+                <div style={{ padding: isMobile ? "12px" : "20px" }}>
                   <h3
                     style={{
                       color: "white",
-                      fontSize: "18px",
+                      fontSize: isMobile ? "14px" : "18px",
                       fontWeight: "700",
-                      margin: "0 0 8px 0",
+                      margin: "0 0 5px 0",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -240,15 +277,17 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
                     <span
                       style={{
                         color: "#A855F7",
-                        fontSize: "13px",
+                        fontSize: isMobile ? "11px" : "13px",
                         fontWeight: "600",
                       }}
                     >
                       {movie.category}
                     </span>
-                    <span style={{ color: "#475569", fontSize: "12px" }}>
-                      {movie.releaseDate}
-                    </span>
+                    {!isMobile && (
+                      <span style={{ color: "#475569", fontSize: "12px" }}>
+                        {movie.releaseDate}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -263,10 +302,9 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
             }}
           >
             <div style={{ fontSize: "50px", marginBottom: "20px" }}>🔍</div>
-            <h3 style={{ color: "white", fontSize: "24px", fontWeight: "700" }}>
-              Bunday ma'lumotlar yo'q
+            <h3 style={{ color: "white", fontSize: "24px" }}>
+              Hech narsa topilmadi
             </h3>
-            <p>Qidiruv so'zini o'zgartirib ko'ring</p>
           </div>
         )}
 
@@ -276,60 +314,77 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              marginTop: "60px",
+              marginTop: "50px",
               gap: "25px",
               position: "relative",
-              zIndex: 10,
+              zIndex: 50,
             }}
           >
             <button
-              onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (currentPage > 1) setCurrentPage(currentPage - 1);
+              }}
+              className="pagination-btn"
               style={{
                 backgroundColor: "#111122",
-                border: "1px solid rgba(168, 85, 247, 0.3)",
-                borderRadius: "14px",
-                width: "55px",
-                height: "55px",
+                border: "1px solid #A855F750",
+                borderRadius: "15px",
+                width: "50px",
+                height: "50px",
+                color: "white",
+                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                opacity: currentPage === 1 ? 0.2 : 1,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                color: "#A855F7",
-                cursor: currentPage === 1 ? "default" : "pointer",
-                opacity: currentPage === 1 ? 0.3 : 1,
-                fontSize: "22px",
+                fontSize: "24px",
+                transition: "0.2s",
+                pointerEvents: currentPage === 1 ? "none" : "auto",
               }}
+              disabled={currentPage === 1}
             >
               ←
             </button>
 
             <div
-              style={{ color: "#64748B", fontSize: "18px", fontWeight: "700" }}
+              style={{
+                color: "white",
+                fontWeight: "700",
+                fontSize: isMobile ? "18px" : "22px",
+                minWidth: "100px",
+                textAlign: "center",
+                letterSpacing: "2px",
+                userSelect: "none",
+              }}
             >
-              <span style={{ color: "white", fontSize: "22px" }}>
-                {currentPage}
-              </span>
-              <span style={{ margin: "0 10px", opacity: 0.5 }}>/</span>
+              {currentPage} <span style={{ color: "#A855F7" }}>/</span>{" "}
               {totalPages}
             </div>
 
             <button
-              onClick={() =>
-                currentPage < totalPages && setCurrentPage(currentPage + 1)
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+              }}
+              className="pagination-btn"
               style={{
                 backgroundColor: "#111122",
-                border: "1px solid rgba(168, 85, 247, 0.3)",
-                borderRadius: "14px",
-                width: "55px",
-                height: "55px",
+                border: "1px solid #A855F750",
+                borderRadius: "15px",
+                width: "50px",
+                height: "50px",
+                color: "white",
+                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                opacity: currentPage === totalPages ? 0.2 : 1,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                color: "#A855F7",
-                cursor: currentPage === totalPages ? "default" : "pointer",
-                opacity: currentPage === totalPages ? 0.3 : 1,
-                fontSize: "22px",
+                fontSize: "24px",
+                transition: "0.2s",
+                pointerEvents: currentPage === totalPages ? "none" : "auto",
               }}
+              disabled={currentPage === totalPages}
             >
               →
             </button>
@@ -340,19 +395,20 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
       {selectedMovie && (
         <div
           onClick={closeModal}
+          className="modal-overlay"
           style={{
             position: "fixed",
             top: 0,
             left: 0,
             width: "100%",
             height: "100%",
-            backgroundColor: "rgba(0,0,0,0.9)",
+            backgroundColor: "rgba(0,0,0,0.92)",
             zIndex: 1000,
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
-            padding: "20px",
-            backdropFilter: "blur(20px)",
+            alignItems: isMobile ? "flex-end" : "center",
+            padding: isMobile ? "0" : "20px",
+            backdropFilter: "blur(15px)",
           }}
         >
           <div
@@ -360,18 +416,20 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
             style={{
               backgroundColor: "#0F0F1A",
               width: "100%",
-              maxWidth: "850px",
-              borderRadius: "32px",
+              maxWidth: "800px",
+              borderRadius: isMobile ? "25px 25px 0 0" : "32px",
               overflow: "hidden",
               color: "white",
-              position: "relative",
-              border: "1px solid rgba(168, 85, 247, 0.2)",
-              maxHeight: "90vh",
+              border: "1px solid #A855F733",
+              maxHeight: "92vh",
               overflowY: "auto",
             }}
           >
             <div
-              style={{ position: "relative", width: "100%", height: "450px" }}
+              style={{
+                position: "relative",
+                height: isMobile ? "240px" : "400px",
+              }}
             >
               <img
                 src={selectedMovie.imageUrl}
@@ -382,17 +440,16 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
                 onClick={closeModal}
                 style={{
                   position: "absolute",
-                  top: "25px",
-                  right: "25px",
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  backdropFilter: "blur(10px)",
+                  top: "15px",
+                  right: "15px",
+                  background: "rgba(0,0,0,0.5)",
                   border: "none",
                   color: "white",
-                  width: "45px",
-                  height: "45px",
+                  width: "35px",
+                  height: "35px",
                   borderRadius: "50%",
                   cursor: "pointer",
-                  fontSize: "20px",
+                  zIndex: 10,
                 }}
               >
                 ✕
@@ -400,87 +457,91 @@ export default function Ommabop({ searchTerm = "" }: { searchTerm?: string }) {
               <div
                 style={{
                   position: "absolute",
-                  bottom: "30px",
-                  left: "40px",
-                  right: "40px",
+                  bottom: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  background: "linear-gradient(to top, #0F0F1A, transparent)",
+                }}
+              ></div>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "20px",
+                  left: "20px",
+                  right: "20px",
                 }}
               >
                 <h2
                   style={{
-                    fontSize: "48px",
+                    fontSize: isMobile ? "22px" : "36px",
                     fontWeight: "900",
-                    margin: "10px 0",
+                    margin: "0 0 10px 0",
                   }}
                 >
-                  {selectedMovie.title}
                 </h2>
                 <div
-                  style={{ display: "flex", gap: "20px", alignItems: "center" }}
+                  style={{
+                    display: "flex",
+                    gap: "15px",
+                    fontSize: "14px",
+                    color: "#A855F7",
+                    fontWeight: "bold",
+                  }}
                 >
-                  <span
-                    style={{
-                      color: "#FACC15",
-                      fontWeight: "bold",
-                      fontSize: "20px",
-                    }}
-                  >
-                    ★ {selectedMovie.rating}
-                  </span>
-                  <span style={{ color: "#CBD5E1" }}>
+                  <span>★ {selectedMovie.rating}</span>
+                  <span style={{ color: "#64748B" }}>|</span>
+                  <span style={{ color: "#94A3B8" }}>
                     {selectedMovie.releaseDate}
                   </span>
                 </div>
               </div>
             </div>
-
-            <div style={{ padding: "40px" }}>
-              <h4
-                style={{
-                  color: "#A855F7",
-                  fontSize: "18px",
-                  fontWeight: "700",
-                  marginBottom: "15px",
-                }}
-              >
-                MAZMUNI
-              </h4>
+            <div style={{ padding: isMobile ? "20px" : "30px" }}>
               <p
                 style={{
-                  lineHeight: "1.7",
                   color: "#94A3B8",
-                  fontSize: "17px",
-                  marginBottom: "40px",
+                  lineHeight: "1.6",
+                  marginBottom: "30px",
+                  fontSize: isMobile ? "14px" : "16px",
                 }}
               >
                 {selectedMovie.overview}
               </p>
-              <div style={{ display: "flex", gap: "20px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
+                  gap: "12px",
+                }}
+              >
                 <button
                   onClick={() => handleWatchNow(selectedMovie.videoUrl)}
                   style={{
                     backgroundColor: "#A855F7",
                     color: "white",
-                    padding: "18px 45px",
-                    borderRadius: "20px",
+                    padding: "16px",
+                    borderRadius: "16px",
                     border: "none",
                     fontWeight: "800",
-                    fontSize: "17px",
                     cursor: "pointer",
                     flex: 2,
+                    fontSize: "16px",
                   }}
                 >
-                  Hozir ko'rish
+                  Ko'rishni boshlash
                 </button>
                 <button
                   onClick={() => handleShare(selectedMovie)}
                   style={{
                     backgroundColor: "rgba(255,255,255,0.05)",
                     color: "white",
-                    padding: "18px",
-                    borderRadius: "20px",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    padding: "16px",
+                    borderRadius: "16px",
+                    border: "1px solid #ffffff1a",
                     cursor: "pointer",
                     flex: 1,
+                    fontWeight: "600",
                   }}
                 >
                   Ulashish

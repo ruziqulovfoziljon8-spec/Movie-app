@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
@@ -7,8 +7,16 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [validationError, setValidationError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const router = useRouter();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 480);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,7 +43,15 @@ export default function Login() {
     <div className="login-container" style={pageWrapperStyle}>
       <div style={glowOverlayStyle}></div>
       <div className="floating-circle" style={circleStyle}></div>
-      <form onSubmit={handleSubmit} style={formStyle}>
+
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          ...formStyle,
+          padding: isMobile ? "30px 20px" : "40px", 
+          maxWidth: isMobile ? "100%" : "400px",
+        }}
+      >
         <div style={logoWrapperStyle}>
           <div style={playIconStyle}>
             <div style={playTriangleStyle}></div>
@@ -46,7 +62,9 @@ export default function Login() {
         </div>
 
         <div style={{ textAlign: "center", marginBottom: "10px" }}>
-          <h1 style={titleStyle}>Kirish</h1>
+          <h1 style={{ ...titleStyle, fontSize: isMobile ? "24px" : "28px" }}>
+            Kirish
+          </h1>
           <p style={subtitleStyle}>Sevimli kinolaringiz olamiga qayting</p>
         </div>
 
@@ -100,6 +118,7 @@ export default function Login() {
         * {
           box-sizing: border-box;
           font-family: 'Inter', sans-serif;
+          -webkit-tap-highlight-color: transparent; 
         }
 
         .login-button:hover {
@@ -108,7 +127,11 @@ export default function Login() {
         }
 
         .login-button:active {
-          transform: translateY(-1px);
+          transform: translateY(-1px) scale(0.98);
+        }
+
+        input {
+          -webkit-appearance: none; 
         }
 
         input:focus {
@@ -124,13 +147,18 @@ export default function Login() {
 
         @keyframes float {
           0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(30px, -50px); }
+          50% { transform: translate(15px, -20px); }
+        }
+
+        @media (max-width: 480px) {
+          .login-container {
+            padding: 15px !important;
+          }
         }
       `}</style>
     </div>
   );
 }
-
 
 const pageWrapperStyle: React.CSSProperties = {
   display: "flex",
@@ -153,27 +181,25 @@ const glowOverlayStyle: React.CSSProperties = {
 
 const circleStyle: React.CSSProperties = {
   position: "absolute",
-  width: "400px",
-  height: "400px",
+  width: "300px",
+  height: "300px",
   background: "rgba(229, 9, 20, 0.05)",
   borderRadius: "50%",
-  top: "10%",
-  right: "10%",
-  filter: "blur(100px)",
+  top: "5%",
+  right: "5%",
+  filter: "blur(80px)",
   zIndex: 0,
 };
 
 const formStyle: React.CSSProperties = {
   width: "100%",
-  maxWidth: "400px",
-  padding: "40px",
   borderRadius: "24px",
   background: "rgba(20, 20, 20, 0.95)",
   border: "1px solid rgba(255, 255, 255, 0.05)",
   boxShadow: "0 40px 100px rgba(0, 0, 0, 0.8)",
   display: "flex",
   flexDirection: "column",
-  gap: "24px",
+  gap: "20px",
   position: "relative",
   zIndex: 1,
 };
@@ -182,86 +208,84 @@ const logoWrapperStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: "12px",
+  gap: "10px",
 };
 
 const playIconStyle: React.CSSProperties = {
-  width: "50px",
-  height: "50px",
+  width: "45px",
+  height: "45px",
   background: "#e50914",
   borderRadius: "50%",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  boxShadow: "0 0 20px rgba(229, 9, 20, 0.5)",
 };
 
 const playTriangleStyle: React.CSSProperties = {
   width: 0,
   height: 0,
-  borderTop: "10px solid transparent",
-  borderBottom: "10px solid transparent",
-  borderLeft: "15px solid white",
-  marginLeft: "4px",
+  borderTop: "8px solid transparent",
+  borderBottom: "8px solid transparent",
+  borderLeft: "12px solid white",
+  marginLeft: "3px",
 };
 
 const brandNameStyle: React.CSSProperties = {
   color: "#fff",
-  fontSize: "20px",
+  fontSize: "18px",
   fontWeight: "900",
-  letterSpacing: "3px",
+  letterSpacing: "2px",
   margin: 0,
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: "28px",
   fontWeight: "800",
   color: "#fff",
-  margin: "0 0 8px 0",
+  margin: "0 0 5px 0",
 };
 
 const subtitleStyle: React.CSSProperties = {
   color: "#a0a0a0",
-  fontSize: "14px",
+  fontSize: "13px",
   margin: 0,
 };
 
 const inputGroupStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "18px",
+  gap: "15px",
 };
 
 const labelStyle: React.CSSProperties = {
   color: "#888",
   fontSize: "12px",
   fontWeight: "600",
-  marginBottom: "8px",
+  marginBottom: "6px",
   display: "block",
   marginLeft: "4px",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "16px 18px",
-  borderRadius: "12px",
+  padding: "14px 16px",
+  borderRadius: "10px",
   backgroundColor: "#222",
   border: "1px solid #333",
   color: "#fff",
-  fontSize: "15px",
+  fontSize: "16px", 
   transition: "all 0.2s ease-in-out",
 };
 
 const buttonStyle: React.CSSProperties = {
   width: "100%",
   padding: "16px",
-  borderRadius: "12px",
+  borderRadius: "10px",
   border: "none",
   color: "#fff",
   fontSize: "16px",
   fontWeight: "700",
   cursor: "pointer",
-  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  transition: "all 0.3s ease",
 };
 
 const errorStyle: React.CSSProperties = {
@@ -271,12 +295,10 @@ const errorStyle: React.CSSProperties = {
   background: "rgba(255, 77, 77, 0.1)",
   padding: "10px",
   borderRadius: "8px",
-  border: "1px solid rgba(255, 77, 77, 0.2)",
 };
 
 const footerTextStyle: React.CSSProperties = {
   textAlign: "center",
   color: "#444",
-  fontSize: "12px",
-  marginTop: "10px",
+  fontSize: "11px",
 };

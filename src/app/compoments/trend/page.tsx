@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import trend1 from "../images/trend11.png";
 import trend2 from "../images/trend2.png";
@@ -20,38 +20,53 @@ const trendingMovies = [
 
 export default function Trend() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const router = useRouter(); // Routerni ishga tushiramiz
+  const [isMobile, setIsMobile] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <section
       style={{
         width: "100%",
         backgroundColor: "#070710",
-        padding: "40px 0",
+        padding: isMobile ? "20px 0" : "40px 0",
         overflow: "hidden",
-        minHeight: "50vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        position: "relative", 
       }}
     >
-      <div style={{ width: "100%", maxWidth: "1400px", padding: "0 20px" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "1400px",
+          padding: isMobile ? "0 10px" : "0 20px",
+        }}
+      >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: "0 70px",
+            padding: isMobile ? "0 15px" : "0 70px",
             marginBottom: "30px",
+            position: "relative",
+            zIndex: 50, 
           }}
         >
           <h2
             style={{
               color: "white",
-              fontSize: "28px",
+              fontSize: isMobile ? "22px" : "28px",
               fontWeight: "900",
               borderLeft: "4px solid #A855F7",
-              borderRadius: "3px",
               paddingLeft: "15px",
               margin: 0,
             }}
@@ -60,27 +75,36 @@ export default function Trend() {
           </h2>
 
           <button
-            onClick={() => router.push("/admin")}
+            type="button" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation(); 
+              router.push("/admin");
+            }}
             style={{
               backgroundColor: "rgba(168, 85, 247, 0.1)",
               color: "#A855F7",
               border: "1px solid #A855F7",
-              padding: "8px 20px",
+              padding: isMobile ? "6px 14px" : "10px 22px",
               borderRadius: "20px",
               cursor: "pointer",
               fontWeight: "bold",
-              fontSize: "14px",
+              fontSize: isMobile ? "12px" : "14px",
               transition: "all 0.3s ease",
               position: "relative",
-              zIndex: 100, 
+              zIndex: 101, 
+              pointerEvents: "auto", 
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = "#A855F7";
               e.currentTarget.style.color = "white";
+              e.currentTarget.style.boxShadow =
+                "0 0 15px rgba(168, 85, 247, 0.4)";
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.1)";
               e.currentTarget.style.color = "#A855F7";
+              e.currentTarget.style.boxShadow = "none";
             }}
           >
             Admin Panel 🔐
@@ -92,9 +116,9 @@ export default function Trend() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: "5px",
+            gap: isMobile ? "15px 0px" : "5px",
             width: "100%",
-            flexWrap: "nowrap",
+            flexWrap: isMobile ? "wrap" : "nowrap",
           }}
         >
           {trendingMovies.map((movie, index) => (
@@ -108,13 +132,14 @@ export default function Trend() {
                 alignItems: "center",
                 cursor: "pointer",
                 transition: "all 0.4s ease",
-                flex: "1",
-                maxWidth: "200px",
+                flex: isMobile ? "0 0 33.33%" : "1",
+                maxWidth: isMobile ? "110px" : "200px",
+                justifyContent: "center",
               }}
             >
               <span
                 style={{
-                  fontSize: "140px",
+                  fontSize: isMobile ? "75px" : "140px",
                   fontWeight: "900",
                   lineHeight: "1",
                   color: "transparent",
@@ -123,10 +148,9 @@ export default function Trend() {
                       ? "2px rgba(161, 144, 255, 0.9)"
                       : "1.5px rgba(161, 144, 255, 0.25)",
                   transition: "all 0.4s ease",
-                  zIndex: 0,
+                  zIndex: 1,
                   position: "relative",
                   fontStyle: "italic",
-                  userSelect: "none", 
                 }}
               >
                 {index + 1}
@@ -135,21 +159,21 @@ export default function Trend() {
               <div
                 style={{
                   position: "relative",
-                  marginLeft: "-50px",
+                  marginLeft: isMobile ? "-25px" : "-50px",
                   zIndex: 10,
                   transition: "all 0.4s ease",
                   transform:
                     hoveredIndex === index
-                      ? "scale(1.1) translateY(-10px)"
+                      ? "scale(1.08) translateY(-5px)"
                       : "scale(1)",
                 }}
               >
                 <div
                   style={{
-                    width: "120px",
-                    height: "180px",
+                    width: isMobile ? "75px" : "120px",
+                    height: isMobile ? "110px" : "180px",
                     overflow: "hidden",
-                    borderRadius: "12px",
+                    borderRadius: isMobile ? "8px" : "12px",
                     border:
                       hoveredIndex === index
                         ? "2px solid #A190FF"
